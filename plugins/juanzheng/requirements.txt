@@ -1,0 +1,9 @@
+# 卷證的相依套件（啟動器 bin/juanzheng.py 會裝進自己的虛擬環境）。
+# 上下限是 2026-10-17 在 Windows 11 實測過的版本範圍；claude-agent-sdk 升到 0.3 前要先確認
+# agent.py 的 CREATE_NO_WINDOW 補丁（SDK 仍用 anyio.open_process）還有效。
+claude-agent-sdk>=0.2.164,<0.3
+rapidfuzz>=3.14
+pywebview>=6.2,<7
+pypdfium2>=5.12,<6
+charset-normalizer>=3.4
+pillow>=12.0

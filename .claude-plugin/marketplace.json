@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "juanzheng",
+  "description": "卷證（案卷問證）：本機文獻研究工具的 Claude Code 外掛市集",
+  "owner": {
+    "name": "Baliyoho"
+  },
+  "plugins": [
+    {
+      "name": "juanzheng",
+      "description": "卷證：Claude 只讀你研究專案裡的史料作答、逐條核對引文、並排原件。macOS／Windows 通用。",
+      "source": "./plugins/juanzheng",
+      "category": "productivity",
+      "homepage": "https://github.com/Baliyoho/juanzheng"
+    }
+  ]
+}

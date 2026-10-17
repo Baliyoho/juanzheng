@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>卷證</title>
+<!-- 多尺寸 .ico：app 視窗的工作列圖示取自這裡。不放 SVG——瀏覽器會先畫成 16px 再放大，工作列上一片糊 -->
+<link rel="icon" href="favicon.ico" sizes="16x16 20x20 24x24 32x32 40x40 48x48 64x64 128x128 256x256">
+<link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
+<link rel="manifest" href="manifest.webmanifest">
+<!-- app 視窗的標題列顏色：跟左欄同色 -->
+<meta name="theme-color" content="#EEEBE2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191816" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+TC:wght@400;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <!-- 標誌：中文引號「」的兩角框住「證」——每段引文都要回到原件 -->
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true">
+        <path d="M5.5 15.5V5.5h10" fill="none" stroke="var(--accent)" stroke-width="3.4"/>
+        <path d="M34.5 24.5v10h-10" fill="none" stroke="var(--accent)" stroke-width="3.4"/>
+        <text x="20" y="27.4" text-anchor="middle" font-size="18.5" font-weight="600" fill="var(--ink)"
+              font-family="Noto Serif TC, Source Han Serif TC, PMingLiU, serif">證</text>
+      </svg>
+      <div class="brand-name"><b>卷證</b><small>案卷問證・本機</small></div>
+      <button class="icon-ghost" id="sideClose" title="收合側欄（Ctrl+B）" aria-label="收合側欄">
+        <svg class="i" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M6 3v10"/></svg>
+      </button>
+    </div>
+    <!-- 研究專案（工作資料夾）：一個專案＝一個資料夾，底下 source／context／session -->
+    <div class="ws" id="ws">
+      <button class="ws-btn" id="wsBtn" aria-haspopup="true" aria-expanded="false" title="切換研究專案（工作資料夾）"></button>
+      <div class="ws-menu" id="wsMenu" hidden></div>
+    </div>
+    <button class="new-topic" id="newTopic">
+      <svg class="i" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></svg>新研究題目
+    </button>
+    <div class="side-label">研究題目</div>
+    <nav class="topics" id="topics"></nav>
+    <div class="side-foot" id="sideFoot"></div>
+  </aside>
+
+  <main class="thread">
+    <header class="thread-head">
+      <button class="icon-ghost side-open" id="sideOpen" title="展開側欄（Ctrl+B）" aria-label="展開側欄">
+        <svg class="i" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M6 3v10"/></svg>
+      </button>
+      <h1 id="topicTitle" title="點一下改名"></h1>
+      <span class="sub" id="topicSub"></span>
+      <button class="ghost" id="exportBtn" title="匯出這個題目的 Markdown 筆記">
+        <svg class="i" viewBox="0 0 16 16"><path d="M8 2v8M5 7l3 3 3-3M3 12v1.5h10V12"/></svg>匯出筆記
+      </button>
+      <button class="ghost" id="themeBtn" title="切換淺色／深色">
+        <svg class="i" viewBox="0 0 16 16"><path d="M13 9.5A5.5 5.5 0 0 1 6.5 3a5.5 5.5 0 1 0 6.5 6.5z"/></svg>
+      </button>
+      <button class="ghost on" id="evToggle" title="顯示／隱藏證據欄">
+        <svg class="i" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M10 3v10"/></svg>證據
+      </button>
+    </header>
+
+    <div class="messages" id="messages"><div class="col" id="thread"></div></div>
+
+    <form class="composer" id="composer">
+      <div class="box">
+        <textarea id="input" rows="2" placeholder="追問，或在這個題目下問新問題…（Enter 送出，Shift+Enter 換行）"></textarea>
+        <div class="controls">
+          <label class="mini-select" title="搜尋範圍">
+            <svg class="i" viewBox="0 0 16 16"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h7"/></svg>
+            <select id="scope"></select>
+          </label>
+          <div class="picker" id="picker">
+            <button type="button" class="picker-btn" id="pickerBtn" aria-haspopup="true" aria-expanded="false" title="研究模型與推理強度"></button>
+            <div class="picker-menu" id="pickerMenu" hidden>
+              <div class="pm-label">模型</div>
+              <div id="models"></div>
+              <div class="pm-label">Effort</div>
+              <div class="seg" id="effort">
+                <button type="button" data-v="low">low</button>
+                <button type="button" data-v="medium">medium</button>
+                <button type="button" data-v="high">high</button>
+                <button type="button" data-v="xhigh">xhigh</button>
+                <button type="button" data-v="max">max</button>
+              </div>
+              <div class="pm-hint" id="limitHint"></div>
+            </div>
+          </div>
+          <button class="send" id="send" type="submit" title="送出">
+            <svg class="i" viewBox="0 0 16 16"><path d="M8 13V3M4 7l4-4 4 4"/></svg>
+          </button>
+        </div>
+      </div>
+    </form>
+  </main>
+
+  <aside class="evidence-wrap">
+    <div class="ev-resize" id="evResize" title="拖曳調整寬度；雙擊恢復預設" role="separator" aria-orientation="vertical"></div>
+    <div class="evidence" id="evidence"></div>
+  </aside>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

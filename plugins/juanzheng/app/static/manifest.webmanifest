@@ -1,0 +1,13 @@
+{
+  "name": "卷證",
+  "short_name": "卷證",
+  "description": "案卷問證：本機文獻研究",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F3EC",
+  "theme_color": "#EEEBE2",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
