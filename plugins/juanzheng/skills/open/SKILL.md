@@ -35,7 +35,8 @@ allowed-tools:
 
 - **需要 Python 3.10 以上**：啟動器找不到會印出安裝方式，照實轉告使用者；不要自己去下載安裝程式。
 - **問答需要 Claude 訂閱登入**（Pro／Max）。卷證每題開跑前檢查，不是訂閱登入就拒絕作答，避免改走 API 計費。
-  使用者沒登入時請他在終端機執行 `claude` 再 `/login`。
+  使用者沒登入時請他在終端機執行 `claude` 再 `/login`。只裝 Claude 桌面版、沒有 `claude` 指令時（桌面版的登入卷證看不到），
+  請他執行卷證虛擬環境裡 `site-packages/claude_agent_sdk/_bundled/claude auth login --claudeai`（虛擬環境在 `status` 印出的資料夾）。
 - 埠 8790 被別的程式佔用時卷證不會啟動；可設環境變數 `JUANZHENG_PORT` 換埠。
 - 視窗沒出現：讀 `status` 印出的資料夾裡的 `server.log`，把錯誤講給使用者聽。
-- macOS 支援在 Windows 上寫成、尚未在 Mac 實機驗證；遇到 Mac 專屬錯誤，照實回報，不要猜測已修好。
+- macOS 只在 Apple 晶片實測過（2026-10-18）；遇到 Mac 專屬錯誤，照實回報，不要猜測已修好。

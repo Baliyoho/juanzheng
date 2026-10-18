@@ -245,7 +245,13 @@ def install_mac():
 ''', encoding='utf-8')
     exe = macos / 'juanzheng'
     script = HERE / 'launch.pyw'
-    exe.write_text(f'#!/bin/sh\nexec "{sys.executable}" "{script}" "$@"\n', encoding='utf-8')
+    # Apple 晶片上 LaunchServices 用 Rosetta 跑腳本型 app，universal 的 python.org Python 會跟著變 x86_64，
+    # 載不了 pip 裝的 arm64 套件（2026-10-18 Mac 實測：從 Finder 開就 ImportError，終端機開正常）
+    exe.write_text('#!/bin/sh\n'
+                   'if [ "$(/usr/sbin/sysctl -n hw.optional.arm64 2>/dev/null)" = 1 ]; then\n'
+                   f'  exec /usr/bin/arch -arm64 "{sys.executable}" "{script}" "$@"\n'
+                   'fi\n'
+                   f'exec "{sys.executable}" "{script}" "$@"\n', encoding='utf-8')
     exe.chmod(0o755)
     try:
         from PIL import Image

@@ -56,11 +56,19 @@ Claude 會用命令列搜尋、讀頁，作答前逐條核對引文。
 | 程式與虛擬環境、最近專案清單、快取、紀錄檔 `server.log` | Windows `%LOCALAPPDATA%\Juanzheng\`；macOS `~/Library/Application Support/Juanzheng/` |
 | 史料、研究題目 | 你自己選的研究專案資料夾（可放任何地方、整包搬走） |
 
+**只裝了 Claude 桌面版、沒有 `claude` 指令時**：桌面版的登入卷證看不到，要另外登入一次 Claude Code。
+用卷證自己帶的 CLI 就可以（路徑中的 `python3.x` 依你的 Python 版本）：
+
+```bash
+"$HOME/Library/Application Support/Juanzheng/venv/lib/python3.x/site-packages/claude_agent_sdk/_bundled/claude" auth login --claudeai
+```
+
 移除：在 Claude Code `/plugin uninstall juanzheng@juanzheng`，再刪掉上表第一列的資料夾與捷徑。研究專案資料夾不會被動到。
 
 ## 限制
 
-- **macOS 尚未在實機驗證**（2026-10-17 在 Windows 11 寫成並實測；Mac 的視窗、捷徑、對話框是照文件寫的）。
+- 2026-10-17 在 Windows 11、2026-10-18 在 Apple 晶片的 macOS 實測過（安裝、開視窗、研究專案、問答、從 Finder 開 `卷證.app`）。
+  Intel Mac 與 Linux 沒測過。
 - 沒做 OCR：掃描檔要自備轉寫。不支援 docx、xlsx。
 - 一次開一個專案、同一時間只跑一題（訂閱額度是一個人的）。
 - 搜尋是逐頁子字串比對（含異體字、全半形正規化），不是向量語意檢索。
