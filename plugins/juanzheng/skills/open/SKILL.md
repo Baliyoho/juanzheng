@@ -27,7 +27,7 @@ allowed-tools:
 
 | 使用者要 | 子指令 |
 |---|---|
-| 桌面捷徑（Windows：桌面＋開始功能表；macOS：`~/Applications/卷證.app`） | `shortcut` |
+| 桌面捷徑（Windows：桌面＋開始功能表；macOS：「應用程式」的 `卷證.app`） | `shortcut` |
 | 只安裝或更新、不開視窗 | `setup`（重建虛擬環境：`setup --force`） |
 | 裝在哪、是不是最新、是否在跑 | `status` |
 

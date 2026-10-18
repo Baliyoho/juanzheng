@@ -2,7 +2,7 @@
 
     python3 juanzheng.py open        # 第一次會先安裝：建虛擬環境、裝相依套件、複製程式；然後開卷證視窗
     python3 juanzheng.py setup       # 只安裝／更新，不開視窗
-    python3 juanzheng.py shortcut    # 建捷徑：Windows 桌面＋開始功能表；macOS ~/Applications/卷證.app
+    python3 juanzheng.py shortcut    # 建捷徑：Windows 桌面＋開始功能表；macOS「應用程式」/Applications/卷證.app
     python3 juanzheng.py status      # 裝在哪裡、版本、是否在跑
     python3 juanzheng.py search 關鍵詞… | read 頁碼 | catalog | context | verify 頁碼 "引文" | projects
                                      # 命令列查詢研究專案（不呼叫模型），參數見 app/cli.py

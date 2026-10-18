@@ -13,8 +13,9 @@
 pywebview 或 WebView2 不能用時，才退回那個做法（伺服器靠 /api/presence 偵測視窗全關後結束）。
 
 建立捷徑：.venv/Scripts/python -X utf8 apps/research_shell/launch.pyw --install
-（Windows：桌面＋開始功能表；macOS：~/Applications/卷證.app。外掛模式由啟動器 `juanzheng.py shortcut` 代跑。）
-出錯時跳對話框；紀錄在執行期資料夾（paths.py）的 server.log。macOS 的部分（2026-10-17）只在 Windows 上寫成、未在 Mac 實測。
+（Windows：桌面＋開始功能表；macOS：「應用程式」/Applications/卷證.app，寫不進去才放 ~/Applications。
+外掛模式由啟動器 `juanzheng.py shortcut` 代跑。）
+出錯時跳對話框；紀錄在執行期資料夾（paths.py）的 server.log。macOS 的部分 2026-10-18 在 Apple 晶片實測過。
 """
 import ctypes
 import json
@@ -223,10 +224,22 @@ def set_shortcut_appid(lnk, appid):
         release(ps)
 
 
+MAC_BUNDLE_ID = 'io.github.baliyoho.juanzheng'
+
+
 def install_mac():
-    """在 ~/Applications 建「卷證.app」：一個只有啟動腳本的最小 bundle，用這個 Python 執行本檔。
+    """在「應用程式」建「卷證.app」：一個只有啟動腳本的最小 bundle，用這個 Python 執行本檔。
+    放 /Applications（Finder 側邊欄的「應用程式」；2026-10-18 使用者要求，原本放 ~/Applications 使用者找不到），
+    寫不進去（非管理員帳號）才退回 ~/Applications；另一處若有我們建的舊「卷證.app」就移除，免得 Launchpad 出現兩個。
     圖示由 static/icon-512.png 轉成 .icns（Pillow 會寫 ICNS）。未簽章；是本機自己建的檔，沒有隔離屬性，Gatekeeper 不擋。"""
-    app = pathlib.Path.home() / 'Applications' / '卷證.app'
+    system, user = pathlib.Path('/Applications'), pathlib.Path.home() / 'Applications'
+    app = (system if os.access(system, os.W_OK) else user) / '卷證.app'
+    for old in (system / '卷證.app', user / '卷證.app'):
+        try:
+            if old != app and MAC_BUNDLE_ID in (old / 'Contents' / 'Info.plist').read_text(encoding='utf-8'):
+                shutil.rmtree(old)
+        except OSError:                          # 沒有舊的，或刪不掉（別的帳號建在 /Applications 的）就算了
+            pass
     macos, res = app / 'Contents' / 'MacOS', app / 'Contents' / 'Resources'
     macos.mkdir(parents=True, exist_ok=True)
     res.mkdir(parents=True, exist_ok=True)
@@ -235,7 +248,7 @@ def install_mac():
 <plist version="1.0"><dict>
 <key>CFBundleName</key><string>卷證</string>
 <key>CFBundleDisplayName</key><string>卷證</string>
-<key>CFBundleIdentifier</key><string>io.github.baliyoho.juanzheng</string>
+<key>CFBundleIdentifier</key><string>''' + MAC_BUNDLE_ID + '''</string>
 <key>CFBundleExecutable</key><string>juanzheng</string>
 <key>CFBundleIconFile</key><string>juanzheng</string>
 <key>CFBundlePackageType</key><string>APPL</string>

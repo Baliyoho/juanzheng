@@ -23,7 +23,7 @@
 
 然後說「打開卷證」（或 `/juanzheng:open`）。第一次會花幾分鐘安裝：啟動器在你的使用者資料夾建虛擬環境、
 裝相依套件（含 Claude Agent SDK 內建的 Claude Code CLI，數百 MB），之後就是秒開。
-要桌面捷徑就說「建卷證捷徑」（`shortcut`）：Windows 放桌面＋開始功能表，macOS 放 `~/Applications/卷證.app`。
+要桌面捷徑就說「建卷證捷徑」（`shortcut`）：Windows 放桌面＋開始功能表，macOS 放「應用程式」裡的 `卷證.app`（`/Applications`；帳號沒有權限時放 `~/Applications`）。
 
 不經 Claude Code 也能直接用啟動器：
 
