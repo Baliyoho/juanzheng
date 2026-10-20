@@ -53,8 +53,13 @@ Claude 會用命令列搜尋、讀頁，作答前逐條核對引文。
 
 | 東西 | 位置 |
 |---|---|
-| 程式與虛擬環境、最近專案清單、快取、紀錄檔 `server.log` | Windows `%LOCALAPPDATA%\Juanzheng\`；macOS `~/Library/Application Support/Juanzheng/` |
+| 程式與虛擬環境、最近專案清單、快取、紀錄檔 `server.log` | Windows `%USERPROFILE%\.juanzheng\`；macOS `~/Library/Application Support/Juanzheng/` |
 | 史料、研究題目 | 你自己選的研究專案資料夾（可放任何地方、整包搬走） |
+
+Windows 不放 `%LOCALAPPDATA%`：Claude 桌面版是 MSIX 封裝，從它底下寫進 AppData 的檔會被系統重導到桌面版的私有資料夾，
+桌面捷徑與一般終端機看不到，解除安裝桌面版時還會一起刪掉。1.0.3 以前裝在 `%LOCALAPPDATA%\Juanzheng\`
+（或 `%LOCALAPPDATA%\Packages\Claude_…\LocalCache\Local\Juanzheng\`）的，新版第一次啟動會把專案清單等設定複製過來；
+舊資料夾不會自動刪，`juanzheng.py status` 會列出來，確認新版正常後可以自己刪。
 
 **只裝了 Claude 桌面版、沒有 `claude` 指令時**：桌面版的登入卷證看不到，要另外登入一次 Claude Code。
 用卷證自己帶的 CLI 就可以（路徑中的 `python3.x` 依你的 Python 版本）：

@@ -8,7 +8,8 @@
                                      # 命令列查詢研究專案（不呼叫模型），參數見 app/cli.py
 
 為什麼要把程式複製到使用者資料夾再跑：外掛每次更新都會換一個安裝路徑，桌面捷徑若指著外掛資料夾，
-更新後就斷了。所以程式與虛擬環境固定放在 `<使用者資料夾>/Juanzheng/`（位置見 app/paths.py），
+更新後就斷了。所以程式與虛擬環境固定放在執行期資料夾（Windows `%USERPROFILE%\\.juanzheng\\`、
+macOS `~/Library/Application Support/Juanzheng/`；為什麼 Windows 不放 AppData 見 app/paths.py），
 捷徑指那裡；外掛內容變了（雜湊不同）才重新複製，相依套件清單變了才重新 pip install。
 卷證開著的時候不換程式，下次再換。
 """
@@ -36,6 +37,8 @@ PORT = int(os.environ.get('JUANZHENG_PORT') or 8790)
 URL = f'http://127.0.0.1:{PORT}/'
 MIN_PY = (3, 10)
 QUERY_CMDS = ('search', 'read', 'catalog', 'context', 'verify', 'projects')
+# 換資料夾時要帶過去的使用者狀態（專案清單、人工核對、視窗設定、改版前的題目）；venv、app、快取重建就好
+CARRY_OVER = ('workspaces.json', 'verdicts.jsonl', 'settings.json', 'topics')
 
 
 def say(*a):
@@ -95,10 +98,43 @@ def running():
         return False
 
 
+def legacy_installs():
+    """舊位置（1.0.3 以前 Windows 的 %LOCALAPPDATA%，含被 MSIX 重導的）還留著的安裝，最近用過的排前面。"""
+    if DATA != paths.user_data_dir():                       # JUANZHENG_DATA 指定了位置：不管舊的
+        return []
+    found = {}
+    for d in paths.legacy_data_dirs():
+        if (d / 'install.json').is_file() or any((d / n).exists() for n in CARRY_OVER):
+            found.setdefault(os.path.normcase(os.path.realpath(d)), d)   # 封裝內兩條路徑可能是同一份
+    return sorted(found.values(), key=lambda d: max((p.stat().st_mtime for p in d.iterdir()), default=0),
+                  reverse=True)
+
+
+def carry_over(st):
+    """新資料夾還沒有任何使用者狀態時，從最近用過的舊安裝複製過來（只複製，不刪舊的）。"""
+    if any((DATA / n).exists() for n in CARRY_OVER):
+        return
+    for old in legacy_installs():
+        items = [n for n in CARRY_OVER if (old / n).exists()]
+        if not items:
+            continue
+        for n in items:
+            (shutil.copytree if (old / n).is_dir() else shutil.copy2)(old / n, DATA / n)
+        st['carried_over_from'] = str(paths.redirected(old) or old)
+        say(f'已從舊位置帶過來 {"、".join(items)}：{st["carried_over_from"]}')
+        return
+
+
 def setup(force=False):
     """需要時才做：建 venv、pip install、複製 app/。回傳是否有變動。"""
     st, changed = load_state(), False
     DATA.mkdir(parents=True, exist_ok=True)
+    real = paths.redirected(DATA)
+    if real and '\\packages\\' in str(real).lower():
+        say(f'⚠ 執行期資料夾被系統重導到 {real}——封裝外（桌面捷徑、一般終端機）會看不到這份安裝。'
+            f'請把 JUANZHENG_DATA 設到 AppData 以外的位置。')
+    if not st:
+        carry_over(st)
     req_hash, app_hash = digest(PLUGIN, [REQUIREMENTS]), digest(SRC_APP)
     if force or not venv_python().is_file():
         base = find_python()
@@ -190,10 +226,15 @@ def main():
         return subprocess.run([str(venv_python()), str(APP / 'launch.pyw'), '--install']).returncode
     if cmd == 'status':
         st = load_state()
-        print(json.dumps({'data': str(DATA), 'installed': venv_python().is_file() and (APP / 'launch.pyw').is_file(),
-                          'installed_version': st.get('version'), 'plugin_version': plugin_version(),
-                          'up_to_date': st.get('app') == digest(SRC_APP), 'running': running(), 'url': URL},
-                         ensure_ascii=False, indent=1))
+        info = {'data': str(DATA), 'installed': venv_python().is_file() and (APP / 'launch.pyw').is_file(),
+                'installed_version': st.get('version'), 'plugin_version': plugin_version(),
+                'up_to_date': st.get('app') == digest(SRC_APP), 'running': running(), 'url': URL}
+        if paths.redirected(DATA):
+            info['data_actual'] = str(paths.redirected(DATA))
+        old = [str(paths.redirected(d) or d) for d in legacy_installs()]
+        if old:
+            info['old_installs_can_delete'] = old           # 舊位置的 venv 與程式不再使用；刪不刪由使用者決定
+        print(json.dumps(info, ensure_ascii=False, indent=1))
         return 0
     if cmd in QUERY_CMDS:
         if not venv_python().is_file() or not (APP / 'cli.py').is_file():

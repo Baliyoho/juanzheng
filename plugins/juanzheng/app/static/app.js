@@ -81,6 +81,12 @@
     $('#topicSub').textContent = t ? `${done} 輪問答・最後更新 ${t.updated.slice(5, 16).replace('T', ' ')}` : '';
     $('#exportBtn').disabled = !done;
   }
+  function versionHtml(v) {
+    if (!v?.version) return '';
+    const text = v.dev ? `卷證 ${v.version} 開發版${v.commit ? `・${v.commit}` : ''}` : `卷證 ${v.version}`;
+    const tip = v.dev ? '從 NAA_TR repo 直接執行的開發版；版號是 plugin.json 目前的值，未必已發版' : 'Claude Code 外掛版';
+    return `<div class="ver" title="${tip}">${esc(text)}</div>`;
+  }
   function renderFoot() {
     const s = state.status, a = s.auth, c = s.corpus;
     const limited = s.rate && s.rate.status && s.rate.status !== 'allowed'
@@ -88,7 +94,8 @@
     $('#sideFoot').innerHTML = `<div class="usage" id="usage">${usageHtml(state.usage)}</div>${limited}
       <div class="row"><span class="dot ${a.ok ? '' : 'bad'}"></span>${esc(a.message)}</div>
       <div>${c ? `source ${c.vols} 份・${c.pages.toLocaleString()} 頁` : '尚未開啟研究專案'}</div>
-      ${c?.naa ? '<div>轉寫頁是模型轉寫，非人工校訂</div>' : ''}`;
+      ${c?.naa ? '<div>轉寫頁是模型轉寫，非人工校訂</div>' : ''}
+      ${versionHtml(state.status?.version)}`;
   }
 
   // ── 研究專案（工作資料夾）──

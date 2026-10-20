@@ -1,6 +1,6 @@
 {
   "name": "juanzheng",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "卷證（案卷問證）：本機文獻研究工具。Claude 只讀你研究專案 source/ 裡的史料作答，每段「」引文由程式逐條比對原文，右欄並排原件掃描。走 Claude 訂閱、不走 API 計費；只聽 127.0.0.1。macOS／Windows 通用。",
   "author": {
     "name": "Baliyoho"

@@ -10,8 +10,10 @@
 環境變數 `JUANZHENG_DATA` 可以把執行期資料改到別處（兩種模式都有效；測試、開發用）。
 本檔只用標準函式庫：外掛的啟動器在還沒裝好相依套件之前就要 import 它。
 """
+import json
 import os
 import pathlib
+import subprocess
 import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -21,15 +23,75 @@ APP_NAME = 'Juanzheng'
 
 
 def user_data_dir():
-    """作業系統慣用的「每個使用者一份」的資料夾。"""
+    """「每個使用者一份」的資料夾。macOS／Linux 用作業系統慣用的位置。
+
+    Windows 刻意**不用** `%LOCALAPPDATA%`（2026-10-20 起；1.0.3 以前是 `%LOCALAPPDATA%\\Juanzheng`）：
+    Claude 桌面版是 MSIX 封裝，從它底下跑的子行程（Claude Code → 啟動器 → pip）寫進 AppData 的新檔
+    會被系統重導到 `%LOCALAPPDATA%\\Packages\\Claude_…\\LocalCache\\`，封裝外（檔案總管、一般終端機）
+    看不到，Claude 桌面版解除安裝時還會一起刪掉。使用者資料夾根目錄不受重導，封裝內外看到的是同一份。
+    """
     if os.name == 'nt':
-        base = os.environ.get('LOCALAPPDATA') or pathlib.Path.home() / 'AppData' / 'Local'
-        return pathlib.Path(base) / APP_NAME
+        return pathlib.Path.home() / ('.' + APP_NAME.lower())
     if sys.platform == 'darwin':
         return pathlib.Path.home() / 'Library' / 'Application Support' / APP_NAME
     base = os.environ.get('XDG_DATA_HOME') or pathlib.Path.home() / '.local' / 'share'
     return pathlib.Path(base) / APP_NAME.lower()
 
+
+def legacy_data_dirs():
+    """1.0.3 以前 Windows 的執行期資料夾：真正的 `%LOCALAPPDATA%\\Juanzheng`，以及被 MSIX 重導過去的那些。
+    在封裝內看第一個，看到的是兩者合併後的樣子；在封裝外只能直接去 `Packages\\*\\LocalCache` 找。"""
+    if os.name != 'nt' or not os.environ.get('LOCALAPPDATA'):
+        return []
+    local = pathlib.Path(os.environ['LOCALAPPDATA'])
+    return [local / APP_NAME, *sorted(local.glob(f'Packages/*/LocalCache/Local/{APP_NAME}'))]
+
+
+def redirected(p):
+    """`p` 實際落在別處（MSIX 重導、junction）時回傳實際位置，否則 None。
+    檔案總管與一般程式只認實際位置，所以捷徑、要給封裝外用的路徑都要寫這個。"""
+    real = os.path.realpath(p)
+    return pathlib.Path(real) if os.path.normcase(real) != os.path.normcase(_long_name(os.path.abspath(p))) else None
+
+
+def _long_name(p):
+    """把 Windows 8.3 短檔名（`MESHRO~1`）展開；realpath 會展開，不先展開會把它誤認成重導。"""
+    if os.name != 'nt':
+        return p
+    import ctypes
+    head, rest = p, ''
+    while head and not os.path.exists(head):                 # 還不存在的部分原樣接回去
+        head, tail = os.path.split(head)
+        if not tail:
+            return p
+        rest = os.path.join(tail, rest) if rest else tail
+    buf = ctypes.create_unicode_buffer(32768)
+    if not ctypes.windll.kernel32.GetLongPathNameW(head, buf, len(buf)):
+        return p
+    return os.path.join(buf.value, rest) if rest else buf.value
+
+
+def app_version(here=None):
+    """畫面左下角顯示的版本。外掛版：打包時寫進 app/ 的 `VERSION`（2026-10-20 起）。
+    repo 開發版：沒有 VERSION，讀 `plugin/.claude-plugin/plugin.json` 的版號並標開發版、附 git 短碼——
+    兩者用同一個埠、長得一樣，不標出來分不清現在開的是哪一個。"""
+    here = pathlib.Path(here or HERE)
+    f = here / 'VERSION'
+    if f.is_file():
+        return {'version': f.read_text(encoding='utf-8').strip() or None, 'dev': False, 'commit': None}
+    try:
+        v = json.loads((here / 'plugin' / '.claude-plugin' / 'plugin.json').read_text(encoding='utf-8')).get('version')
+    except (OSError, ValueError):
+        v = None
+    commit = None
+    try:
+        r = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], cwd=str(here), capture_output=True, text=True,
+                           timeout=5, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+        if r.returncode == 0:
+            commit = r.stdout.strip() or None
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return {'version': v, 'dev': True, 'commit': commit}
 
 if os.environ.get('JUANZHENG_DATA'):
     DATA = pathlib.Path(os.environ['JUANZHENG_DATA']).expanduser().resolve()

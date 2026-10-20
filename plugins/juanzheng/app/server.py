@@ -38,6 +38,7 @@ LEGACY_TOPICS = DATA / 'topics'          # 改版前（2026-10-16 以前）研�
 REGISTRY = DATA / 'workspaces.json'
 CACHE = DATA / 'cache'                   # PDF 文字層快取
 IMG_CACHE_MAX = 48
+VERSION = paths.app_version()             # 啟動時讀一次：外掛版號，或開發版＋git 短碼
 
 
 def now():
@@ -408,7 +409,7 @@ class App:
 
     def status(self):
         auth = self.runner.check_auth(max_age=60)
-        return {'auth': auth, 'models': [{'id': k, 'label': v} for k, v in MODELS.items()],
+        return {'auth': auth, 'version': VERSION, 'models': [{'id': k, 'label': v} for k, v in MODELS.items()],
                 'efforts': list(EFFORTS), 'limits': LIMIT_MINUTES,
                 'scopes': self.corpus.scopes if self.ws else {'all': '全部'},
                 'corpus': self.corpus.summary() if self.ws else None,       # launch.pyw 認這個鍵判斷是不是卷證

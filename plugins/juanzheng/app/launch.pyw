@@ -283,6 +283,12 @@ def install():
     pythonw = pathlib.Path(sys.executable).with_name('pythonw.exe')
     if not pythonw.is_file() and paths.REPO:
         pythonw = paths.REPO / '.venv' / 'Scripts' / 'pythonw.exe'
+    # 捷徑由檔案總管開，看的是實際位置：在 Claude 桌面版（MSIX）底下跑時 AppData 會被重導，
+    # sys.executable 給的是重導前的路徑，寫進捷徑就斷了（2026-10-20 Windows 實測）
+    pythonw = paths.redirected(pythonw) or pythonw
+    if 'localcache' in str(pythonw).lower():
+        print(f'⚠ 卷證裝在 Claude 桌面版的封裝快取裡（{pythonw.parent.parent.parent}），'
+              '捷徑能開，但 Claude 桌面版解除安裝或重設時會一起被刪。')
     made = []
     for folder in ('Desktop', 'Programs'):
         # 中文 Windows 的 PowerShell 預設用 Big5 輸出；先切成 UTF-8，回傳的路徑才讀得回來
